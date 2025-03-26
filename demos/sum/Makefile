@@ -3,6 +3,7 @@ build: install move
 install:
 	cd ../../core && mvn clean install -DskipTests
 	cd ../../suite/spdz && mvn clean install -DskipTests
+	cd ../../suite/bgw && mvn clean install -DskipTests
 	cd ../common && mvn clean install -DskipTests
 	mvn clean install -DskipTests
 
@@ -23,3 +24,6 @@ runDummy:
 	cd server1 && java -jar fresco-demo-sum.jar -e SEQUENTIAL_BATCHED -i 1 -l INFO -p 1:localhost:8081 -p 2:localhost:8082 -p 3:localhost:8083 -s dummyarithmetic > log.txt 2>&1 &
 	cd server2 && java -jar fresco-demo-sum.jar -e SEQUENTIAL_BATCHED -i 2 -l INFO -p 1:localhost:8081 -p 2:localhost:8082 -p 3:localhost:8083 -s dummyarithmetic > log.txt 2>&1 &
 	cd server3 && java -jar fresco-demo-sum.jar -e SEQUENTIAL_BATCHED -i 3 -l INFO -p 1:localhost:8081 -p 2:localhost:8082 -p 3:localhost:8083 -s dummyarithmetic 2>&1 | tee log.txt
+
+runBGW:
+	./run_bgw.sh

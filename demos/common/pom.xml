@@ -16,6 +16,13 @@
       <version>1.3</version>
     </dependency>
 
+    <!-- Add BGW dependency -->
+    <dependency>
+      <groupId>dk.alexandra.fresco</groupId>
+      <artifactId>bgw</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Tests depends on Spdz tests. -->
     <dependency>
       <groupId>dk.alexandra.fresco</groupId>

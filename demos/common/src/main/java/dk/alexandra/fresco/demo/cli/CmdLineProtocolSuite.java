@@ -44,6 +44,8 @@ import dk.alexandra.fresco.tools.ot.base.BigIntChouOrlandi;
 import dk.alexandra.fresco.tools.ot.base.BigIntNaorPinkas;
 import dk.alexandra.fresco.tools.ot.base.Ot;
 import dk.alexandra.fresco.tools.ot.otextension.RotList;
+import dk.alexandra.fresco.bgw.BGWProtocolSuite;
+import dk.alexandra.fresco.bgw.BGWResourcePool;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -65,7 +67,7 @@ public class CmdLineProtocolSuite {
   private final ResourcePool resourcePool;
 
   static String getSupportedProtocolSuites() {
-    String[] strings = {"dummybool", "dummyarithmetic", "spdz", "tinytables", "tinytablesprepro"};
+    String[] strings = {"dummybool", "dummyarithmetic", "spdz", "tinytables", "tinytablesprepro", "bgw"};
     return Arrays.toString(strings);
   }
 
@@ -99,6 +101,9 @@ public class CmdLineProtocolSuite {
       this.resourcePool = new TinyTablesPreproResourcePool(myId, baseOt,
           random, 128, 40, 16000, new File(
               tinyTablesFilePath), networkSupplier);
+    } else if (protocolSuiteName.equals("bgw")) {
+      this.protocolSuite = getBgwProtocolSuite(properties);
+      this.resourcePool = createBgwResourcePool(properties, networkSupplier);
     } else {
       this.protocolSuite = tinyTablesFromCmdLine(properties);
       this.resourcePool = new ResourcePoolImpl(myId, noOfPlayers);
@@ -131,6 +136,37 @@ public class CmdLineProtocolSuite {
       throw new RuntimeException("spdz.maxBitLength must be > 1");
     }
     return new SpdzProtocolSuite(maxBitLength);
+  }
+
+  private ProtocolSuite<?, ?> getBgwProtocolSuite(Properties properties) {
+    Properties p = getProperties(properties);
+    // Set default properties for the BGW protocol
+    final int maxBitLength = Integer.parseInt(p.getProperty("bgw.maxBitLength", "64"));
+    if (maxBitLength < 2) {
+      throw new RuntimeException("bgw.maxBitLength must be > 1");
+    }
+    
+    // The fixedPointPrecision is used instead of threshold in the BGWProtocolSuite
+    final int fixedPointPrecision = Integer.parseInt(p.getProperty("bgw.fixedPointPrecision", "16"));
+    
+    return new BGWProtocolSuite(maxBitLength, fixedPointPrecision);
+  }
+
+  private ResourcePool createBgwResourcePool(Properties properties,
+      Supplier<Network> networkSupplier) {
+    
+    final int modBitLength = Integer.parseInt(properties.getProperty("bgw.modBitLength", "128"));
+    final BigInteger modulus = ModulusFinder.findSuitableModulus(modBitLength);
+    
+    // The threshold parameter for BGW
+    final int threshold = Integer.parseInt(properties.getProperty("bgw.threshold", String.valueOf(noOfPlayers / 2)));
+    
+    // Create a BGW resource pool with the correct class name and parameters
+    return new BGWResourcePool(
+        myId, 
+        noOfPlayers,
+        threshold,
+        modulus);
   }
 
   private Properties getProperties(Properties properties) {
